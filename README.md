@@ -55,23 +55,20 @@ ifaci/
 ├── api/                          # Backend Express
 │   ├── server.js
 │   └── package.json
-├── atividades_sala/
-│   └── Aula_01/
-│       └── frontend/
-│           └── novo/             # Frontend Next.js
-│               ├── app/
-│               │   ├── components/
-│               │   │   ├── Header.tsx
-│               │   │   ├── CriarUsuario.tsx
-│               │   │   ├── ListarUsuario.tsx
-│               │   │   ├── CriarEquipamentos.tsx
-│               │   │   ├── ListarEquipamentos.tsx
-│               │   │   └── ListarSensores.tsx
-│               │   ├── equipamentos/
-│               │   │   └── page.tsx
-│               │   ├── page.tsx
-│               │   └── layout.tsx
-│               └── package.json
+├── frontend/                     # Frontend Next.js
+│   ├── app/
+│   │   ├── components/
+│   │   │   ├── Header.tsx
+│   │   │   ├── CriarUsuario.tsx
+│   │   │   ├── ListarUsuario.tsx
+│   │   │   ├── CriarEquipamentos.tsx
+│   │   │   ├── ListarEquipamentos.tsx
+│   │   │   └── ListarSensores.tsx
+│   │   ├── equipamentos/
+│   │   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── layout.tsx
+│   └── package.json
 ├── node-red/
 │   └── file.json                 # Fluxo Node-RED
 └── postman/
@@ -150,7 +147,7 @@ API disponível em `http://localhost:8080`
 ### 3. Iniciar o Frontend
 
 ```bash
-cd atividades_sala/Aula_01/frontend/novo
+cd frontend
 npm install
 npm run dev
 ```
