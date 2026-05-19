@@ -52,11 +52,11 @@ Aplicação full-stack para gerenciamento de usuários, equipamentos e dispositi
 
 ```
 ifaci/
+├── api/                          # Backend Express
+│   ├── server.js
+│   └── package.json
 ├── atividades_sala/
 │   └── Aula_01/
-│       ├── api/                  # Backend Express
-│       │   ├── server.js
-│       │   └── package.json
 │       └── frontend/
 │           └── novo/             # Frontend Next.js
 │               ├── app/
@@ -72,8 +72,10 @@ ifaci/
 │               │   ├── page.tsx
 │               │   └── layout.tsx
 │               └── package.json
-└── node-red/
-    └── file.json                 # Fluxo Node-RED
+├── node-red/
+│   └── file.json                 # Fluxo Node-RED
+└── postman/
+    └── Painel_IoT.postman_collection.json
 ```
 
 ---
@@ -138,7 +140,7 @@ cd seu-repositorio
 ### 2. Iniciar o Backend (API)
 
 ```bash
-cd atividades_sala/Aula_01/api
+cd api
 npm install
 npm start
 ```
@@ -175,7 +177,6 @@ Acesse `http://localhost:1880`, importe o fluxo e faça o deploy:
 |---|---|
 | Usuários | Criar, listar, editar e deletar usuários |
 | Equipamentos | Criar, listar, editar e deletar equipamentos |
-| Dispositivos | Criar, listar, editar, deletar e controlar relé/conexão por equipamento |
 | Sensores IoT | Visualizar dados em tempo real enviados pelo Node-RED (atualização a cada 5s) |
 | Node-RED | Recebe notificações de todos os eventos CRUD via HTTP e envia dados de sensores simulados |
 
@@ -188,3 +189,65 @@ Acesse `http://localhost:1880`, importe o fluxo e faça o deploy:
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS |
 | Backend | Node.js, Express 5 |
 | IoT / Automação | Node-RED |
+
+---
+
+## Endpoints da API
+
+Base URL: `http://localhost:8080`
+
+### Usuários
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/usuarios` | Lista todos os usuários |
+| `POST` | `/novoUsuario` | Cria um novo usuário |
+| `PUT` | `/usuarios/:id` | Edita um usuário pelo id |
+| `DELETE` | `/usuarios/:id` | Deleta um usuário pelo id |
+
+**Body — POST `/novoUsuario`**
+```json
+{
+  "nome_completo": "João da Silva",
+  "email": "joao@email.com",
+  "senha": "senha123"
+}
+```
+
+### Equipamentos
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/equipamentos` | Lista todos os equipamentos |
+| `POST` | `/equipamentos` | Cria um equipamento (notifica Node-RED) |
+| `PUT` | `/equipamentos/:id` | Edita um equipamento (notifica Node-RED) |
+| `DELETE` | `/equipamentos/:id` | Deleta um equipamento pelo id (notifica Node-RED) |
+
+**Body — POST/PUT `/equipamentos`**
+```json
+{
+  "nome": "Equipamento A"
+}
+```
+
+### IoT / Sensores (Node-RED)
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/iot` | Lista todos os dados de sensores recebidos |
+| `GET` | `/sensor/:id` | Retorna dados de um sensor pelo id |
+| `POST` | `/newData` | Cria um novo registro de sensor (usado pelo Node-RED) |
+| `PUT` | `/sensor/:id` | Atualiza sensor pelo id — cria automaticamente se não existir (upsert) |
+
+**Body — POST `/newData` e PUT `/sensor/:id`**
+```json
+{
+  "temperatura": 22.5,
+  "pressao": 1012.0,
+  "umidade": 65.0,
+  "sensor_presenca": false,
+  "trava_seguranca": false
+}
+```
+
+> 📬 Uma Postman Collection com todos os endpoints está disponível em `postman/Painel_IoT.postman_collection.json`
