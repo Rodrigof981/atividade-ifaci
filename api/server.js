@@ -93,17 +93,66 @@ api.delete('/equipamentos/:id', async (req, res) => {
     res.status(200).send({ code: 200, msg: "Equipamento deletado com sucesso!" });
 });
 
-// === IOT (Node-RED) ===
-const iot_data = [];
+// === SENSORES IoT ===
+const dadosSensores = [];
 let idSensor = 0;
 
-api.get('/iot', (req, res) => res.status(200).send(iot_data));
+// GET todos os sensores
+api.get('/sensores', (req, res) => res.status(200).send(dadosSensores));
 
-api.get('/sensor/:id', (req, res) => {
-    const sensor = iot_data.find(s => s.id === parseInt(req.params.id));
-    if (!sensor) return res.status(404).send({ msg: "Sensor não encontrado" });
+// GET sensor por id
+api.get('/sensores/:id', (req, res) => {
+    const sensor = dadosSensores.find(s => s.id === parseInt(req.params.id));
+    if (!sensor) return res.status(404).send({ code: 404, msg: "Sensor não encontrado" });
     res.status(200).send(sensor);
 });
+
+// POST criar sensor
+api.post('/sensores', (req, res) => {
+    idSensor++;
+    const novoSensor = {
+        id: idSensor,
+        temperatura: req.body.temperatura || 0,
+        pressao: req.body.pressao || 0,
+        umidade: req.body.umidade || 0,
+        sensor_presenca: req.body.sensor_presenca || false,
+        trava_seguranca: req.body.trava_seguranca || false
+    };
+    dadosSensores.push(novoSensor);
+    notificaNodeRed('/sensor-criado', novoSensor);
+    res.status(201).send({ code: 201, msg: "Sensor criado com sucesso!", sensor: novoSensor });
+});
+
+// PUT editar sensor
+api.put('/sensores/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = dadosSensores.findIndex(s => s.id === id);
+
+    if (index === -1) {
+        // upsert — cria se não existir (compatível com Node-RED)
+        const novoSensor = { id, ...req.body };
+        dadosSensores.push(novoSensor);
+        return res.status(201).send({ code: 201, msg: "Sensor criado automaticamente!", sensor: novoSensor });
+    }
+
+    dadosSensores[index] = { id, ...req.body };
+    notificaNodeRed('/sensor-editado', dadosSensores[index]);
+    res.status(200).send({ code: 200, msg: "Sensor atualizado com sucesso!", sensor: dadosSensores[index] });
+});
+
+// DELETE sensor
+api.delete('/sensores/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = dadosSensores.findIndex(s => s.id === id);
+    if (index === -1) return res.status(404).send({ code: 404, msg: "Sensor não encontrado" });
+
+    dadosSensores.splice(index, 1);
+    notificaNodeRed('/sensor-deletado', { id });
+    res.status(200).send({ code: 200, msg: "Sensor deletado com sucesso!" });
+});
+
+// === Rotas legadas IoT (compatibilidade com Node-RED) ===
+api.get('/iot', (req, res) => res.status(200).send(dadosSensores));
 
 api.post('/newData', (req, res) => {
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -112,23 +161,28 @@ api.post('/newData', (req, res) => {
     idSensor++;
     const { temperatura, pressao, umidade, sensor_presenca, trava_seguranca } = req.body;
     const newData = { id: idSensor, temperatura, pressao, umidade, sensor_presenca, trava_seguranca };
-    iot_data.push(newData);
+    dadosSensores.push(newData);
     return res.status(201).send({ msg: "Dados recebidos com sucesso!", newData });
 });
 
-// upsert — cria se não existir
+api.get('/sensor/:id', (req, res) => {
+    const sensor = dadosSensores.find(s => s.id === parseInt(req.params.id));
+    if (!sensor) return res.status(404).send({ msg: "Sensor não encontrado" });
+    res.status(200).send(sensor);
+});
+
 api.put('/sensor/:id', (req, res) => {
     const id = parseInt(req.params.id);
-    const index = iot_data.findIndex(s => s.id === id);
+    const index = dadosSensores.findIndex(s => s.id === id);
 
     if (index === -1) {
         const newData = { id, ...req.body };
-        iot_data.push(newData);
+        dadosSensores.push(newData);
         return res.status(201).send({ msg: "Sensor criado automaticamente!", data: newData });
     }
 
-    iot_data[index] = { id, ...req.body };
-    return res.status(200).send({ msg: "Dados do sensor atualizados!", data: iot_data[index] });
+    dadosSensores[index] = { id, ...req.body };
+    return res.status(200).send({ msg: "Dados do sensor atualizados!", data: dadosSensores[index] });
 });
 
 // === INICIAR API ===

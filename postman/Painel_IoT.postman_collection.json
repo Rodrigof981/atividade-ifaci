@@ -152,19 +152,19 @@
       ]
     },
     {
-      "name": "IoT / Sensores (Node-RED)",
+      "name": "Sensores (CRUD)",
       "item": [
         {
-          "name": "Listar todos os dados IoT",
+          "name": "Listar todos os sensores",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/iot",
+              "raw": "{{baseUrl}}/sensores",
               "host": ["{{baseUrl}}"],
-              "path": ["iot"]
+              "path": ["sensores"]
             },
-            "description": "Retorna todos os dados de sensores recebidos pelo Node-RED."
+            "description": "Retorna a lista de todos os sensores cadastrados."
           }
         },
         {
@@ -173,15 +173,84 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/sensor/1",
+              "raw": "{{baseUrl}}/sensores/1",
               "host": ["{{baseUrl}}"],
-              "path": ["sensor", "1"]
+              "path": ["sensores", "1"]
             },
             "description": "Retorna os dados de um sensor específico pelo id."
           }
         },
         {
-          "name": "Criar dado IoT",
+          "name": "Criar sensor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"temperatura\": 22.5,\n  \"pressao\": 1012.0,\n  \"umidade\": 65.0,\n  \"sensor_presenca\": false,\n  \"trava_seguranca\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sensores",
+              "host": ["{{baseUrl}}"],
+              "path": ["sensores"]
+            },
+            "description": "Cria um novo sensor. Notifica o Node-RED via POST /sensor-criado."
+          }
+        },
+        {
+          "name": "Editar sensor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"temperatura\": 35.7,\n  \"pressao\": 1008.5,\n  \"umidade\": 70.2,\n  \"sensor_presenca\": true,\n  \"trava_seguranca\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sensores/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["sensores", "1"]
+            },
+            "description": "Edita um sensor pelo id. Se não existir, cria automaticamente (upsert). Notifica o Node-RED via POST /sensor-editado."
+          }
+        },
+        {
+          "name": "Deletar sensor",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sensores/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["sensores", "1"]
+            },
+            "description": "Deleta um sensor pelo id. Notifica o Node-RED via POST /sensor-deletado."
+          }
+        }
+      ]
+    },
+    {
+      "name": "IoT Legado (Node-RED)",
+      "item": [
+        {
+          "name": "GET /iot (listar todos)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/iot",
+              "host": ["{{baseUrl}}"],
+              "path": ["iot"]
+            },
+            "description": "Rota legada — retorna todos os sensores. Equivalente a GET /sensores."
+          }
+        },
+        {
+          "name": "POST /newData (criar)",
           "request": {
             "method": "POST",
             "header": [
@@ -196,11 +265,11 @@
               "host": ["{{baseUrl}}"],
               "path": ["newData"]
             },
-            "description": "Cria um novo registro de dados IoT. Usado pelo Node-RED para enviar leituras de sensores."
+            "description": "Rota legada usada pelo Node-RED para criar dados de sensor."
           }
         },
         {
-          "name": "Atualizar sensor (upsert)",
+          "name": "PUT /sensor/:id (upsert)",
           "request": {
             "method": "PUT",
             "header": [
@@ -215,7 +284,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["sensor", "1"]
             },
-            "description": "Atualiza os dados de um sensor pelo id. Se não existir, cria automaticamente (upsert). Usado pelo Node-RED a cada 5 segundos."
+            "description": "Rota legada usada pelo Node-RED a cada 5s para atualizar sensor."
           }
         }
       ]

@@ -11,6 +11,9 @@ export default function Header() {
                 <Link href="/equipamentos" className="px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
                     Equipamentos
                 </Link>
+                <Link href="/sensores" className="px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
+                    Sensores
+                </Link>
             </nav>
         </div>
     )

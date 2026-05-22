@@ -1,6 +1,6 @@
 # Painel de Controle IoT
 
-Aplicação full-stack para gerenciamento de usuários, equipamentos e dispositivos IoT, com integração ao Node-RED para recebimento e notificação de eventos em tempo real.
+Aplicação full-stack para gerenciamento de usuários, equipamentos e sensores IoT, com integração ao Node-RED para recebimento e notificação de eventos em tempo real.
 
 ---
 
@@ -23,24 +23,24 @@ Aplicação full-stack para gerenciamento de usuários, equipamentos e dispositi
 │  PUT/DELETE      /usuarios/:id                          │
 │  GET/POST        /equipamentos                          │
 │  PUT/DELETE      /equipamentos/:id                      │
-│  GET/POST        /equipamentos/:id/dispositivos         │
-│  PUT/DELETE      /dispositivos/:id                      │
-│  GET             /iot                                   │
-│  POST            /newData                               │
-│  PUT             /sensor/:id                            │
+│  GET/POST        /sensores                              │
+│  GET/PUT/DELETE  /sensores/:id                          │
+│  GET             /iot            (legado Node-RED)       │
+│  POST            /newData        (legado Node-RED)       │
+│  GET/PUT         /sensor/:id     (legado Node-RED)       │
 └──────────┬──────────────────────────┬───────────────────┘
            │ Notificações (HTTP POST) │ Dados IoT (HTTP PUT/POST)
 ┌──────────▼──────────────────────────▼───────────────────┐
 │                      Node-RED                           │
 │                  http://localhost:1880                  │
 │                                                         │
-│  Endpoints recebidos:                                   │
+│  Endpoints recebidos da API:                            │
 │  POST  /equipamento-criado                              │
 │  POST  /equipamento-editado                             │
 │  POST  /equipamento-deletado                            │
-│  POST  /dispositivo-criado                              │
-│  POST  /dispositivo-editado                             │
-│  POST  /dispositivo-deletado                            │
+│  POST  /sensor-criado                                   │
+│  POST  /sensor-editado                                  │
+│  POST  /sensor-deletado                                 │
 │                                                         │
 │  Endpoints enviados para a API:                         │
 │  POST  /newData        (cria sensor IoT)                │
@@ -63,14 +63,19 @@ ifaci/
 │   │   │   ├── ListarUsuario.tsx
 │   │   │   ├── CriarEquipamentos.tsx
 │   │   │   ├── ListarEquipamentos.tsx
+│   │   │   ├── CriarSensor.tsx
 │   │   │   └── ListarSensores.tsx
 │   │   ├── equipamentos/
+│   │   │   └── page.tsx
+│   │   ├── sensores/
 │   │   │   └── page.tsx
 │   │   ├── page.tsx
 │   │   └── layout.tsx
 │   └── package.json
 ├── node-red/
 │   └── file.json                 # Fluxo Node-RED
+├── opcua-server/
+│   └── server.py                 # Servidor OPC-UA (simulação industrial)
 └── postman/
     └── Painel_IoT.postman_collection.json
 ```
@@ -174,8 +179,9 @@ Acesse `http://localhost:1880`, importe o fluxo e faça o deploy:
 |---|---|
 | Usuários | Criar, listar, editar e deletar usuários |
 | Equipamentos | Criar, listar, editar e deletar equipamentos |
-| Sensores IoT | Visualizar dados em tempo real enviados pelo Node-RED (atualização a cada 5s) |
-| Node-RED | Recebe notificações de todos os eventos CRUD via HTTP e envia dados de sensores simulados |
+| Sensores | Criar, listar, editar e deletar sensores (CRUD completo) |
+| Node-RED | Recebe notificações de todos os eventos CRUD via HTTP e envia dados simulados de sensores a cada 5s |
+| OPC-UA | Servidor de simulação industrial com variáveis de temperatura, pressão e status |
 
 ---
 
@@ -186,6 +192,7 @@ Acesse `http://localhost:1880`, importe o fluxo e faça o deploy:
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS |
 | Backend | Node.js, Express 5 |
 | IoT / Automação | Node-RED |
+| Industrial | OPC-UA (Python) |
 
 ---
 
@@ -218,7 +225,7 @@ Base URL: `http://localhost:8080`
 | `GET` | `/equipamentos` | Lista todos os equipamentos |
 | `POST` | `/equipamentos` | Cria um equipamento (notifica Node-RED) |
 | `PUT` | `/equipamentos/:id` | Edita um equipamento (notifica Node-RED) |
-| `DELETE` | `/equipamentos/:id` | Deleta um equipamento pelo id (notifica Node-RED) |
+| `DELETE` | `/equipamentos/:id` | Deleta um equipamento (notifica Node-RED) |
 
 **Body — POST/PUT `/equipamentos`**
 ```json
@@ -227,16 +234,17 @@ Base URL: `http://localhost:8080`
 }
 ```
 
-### IoT / Sensores (Node-RED)
+### Sensores
 
 | Método | Endpoint | Descrição |
 |---|---|---|
-| `GET` | `/iot` | Lista todos os dados de sensores recebidos |
-| `GET` | `/sensor/:id` | Retorna dados de um sensor pelo id |
-| `POST` | `/newData` | Cria um novo registro de sensor (usado pelo Node-RED) |
-| `PUT` | `/sensor/:id` | Atualiza sensor pelo id — cria automaticamente se não existir (upsert) |
+| `GET` | `/sensores` | Lista todos os sensores |
+| `GET` | `/sensores/:id` | Busca sensor por id |
+| `POST` | `/sensores` | Cria um sensor (notifica Node-RED) |
+| `PUT` | `/sensores/:id` | Edita um sensor — upsert (notifica Node-RED) |
+| `DELETE` | `/sensores/:id` | Deleta um sensor (notifica Node-RED) |
 
-**Body — POST `/newData` e PUT `/sensor/:id`**
+**Body — POST/PUT `/sensores`**
 ```json
 {
   "temperatura": 22.5,
@@ -246,5 +254,16 @@ Base URL: `http://localhost:8080`
   "trava_seguranca": false
 }
 ```
+
+### Rotas legadas (compatibilidade Node-RED)
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/iot` | Equivalente a `GET /sensores` |
+| `GET` | `/sensor/:id` | Equivalente a `GET /sensores/:id` |
+| `POST` | `/newData` | Cria sensor (usado pelo Node-RED) |
+| `PUT` | `/sensor/:id` | Atualiza sensor — upsert (usado pelo Node-RED a cada 5s) |
+
+---
 
 > 📬 Uma Postman Collection com todos os endpoints está disponível em `postman/Painel_IoT.postman_collection.json`
